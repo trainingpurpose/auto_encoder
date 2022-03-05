@@ -15,7 +15,7 @@ encoder_input = keras.Input(shape=(28, 28, 1), name='input_image')
 x = keras.layers.Flatten()(encoder_input)
 encoder_output = keras.layers.Dense(64, activation="relu")(x)
 
-encoder = keras.Model(encoder_input, encoder_output, name='image_encoder')
+# encoder = keras.Model(encoder_input, encoder_output, name='image_encoder')
 decoder_input = keras.layers.Dense(64, activation="relu")(encoder_output)
 
 x = keras.layers.Dense(784, activation="relu")(decoder_input)
@@ -36,4 +36,4 @@ autoencoder.fit(
         callbacks=[tensorboard_callback]
     )
 
-autoencoder.save(f"models/auto_encoder.model")
+autoencoder.save("models/auto_encoder.model")
