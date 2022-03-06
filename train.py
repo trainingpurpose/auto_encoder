@@ -2,38 +2,50 @@ import tensorflow as tf
 from tensorflow import keras
 from datetime import datetime
 
-epochs = 5
-(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
-x_train = x_train / 255.0
-x_test = x_test / 255.0
+class Models:
 
-log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+    def __init__(self, data, epochs=5):
+        (x_train, y_train), (x_test, y_test) = data
+        self.x_train = x_train / 255.0
+        self.x_test = x_test / 255.0
+        self.y_train = y_train / 255.0
+        self.y_test = y_test / 255.0
 
-encoder_input = keras.Input(shape=(28, 28, 1), name='input_image')
-x = keras.layers.Flatten()(encoder_input)
-encoder_output = keras.layers.Dense(64, activation="relu")(x)
+        self.epochs = epochs
 
-# encoder = keras.Model(encoder_input, encoder_output, name='image_encoder')
-decoder_input = keras.layers.Dense(64, activation="relu")(encoder_output)
+        self.encoder_input = keras.Input(shape=(28, 28, 1), name='input_image')
+        x = keras.layers.Flatten()(self.encoder_input)
+        self.encoder_output = keras.layers.Dense(64, activation="relu")(x)
+        self.decoder_input = keras.layers.Dense(64, activation="relu")(self.encoder_output)
+        x = keras.layers.Dense(784, activation="relu")(self.decoder_input)
+        self.decoder_output = keras.layers.Reshape((28, 28, 1))(x)
+        self.autoencoder = keras.Model(self.encoder_input, self.decoder_output, name='autoencoder')
 
-x = keras.layers.Dense(784, activation="relu")(decoder_input)
-decoder_output = keras.layers.Reshape((28, 28, 1))(x)
-opt = tf.keras.optimizers.Adam(learning_rate=0.001, decay=1e-6)
+        self.encoder = keras.Model(self.encoder_input, self.encoder_output, name='image_encoder')
+        self.decoder = keras.Model(self.decoder_input, self.decoder_output, name='image_decoder')
 
-autoencoder = keras.Model(encoder_input, decoder_output, name='autoencoder')
-autoencoder.summary()
+    def train(self):
+        opt = tf.keras.optimizers.Adam(learning_rate=0.001, decay=1e-6)
+        # log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+        # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+        self.autoencoder.compile(opt, loss='mse')
+        print(self.x_train[0])
+        self.autoencoder.fit(
+            self.x_train,
+            self.x_train,
+            epochs=5,
+            batch_size=32,
+            validation_split=0.10,
+            # callbacks=[tensorboard_callback]
+        )
 
-autoencoder.compile(opt, loss='mse')
+    def save(self):
+        self.autoencoder.save("models/auto_encoder.model")
+        self.encoder.save("models/encoder.model")
+        self.decoder.save("models/decoder.model")
 
-autoencoder.fit(
-        x_train,
-        x_train,
-        epochs=5,
-        batch_size=32,
-        validation_split=0.10,
-        callbacks=[tensorboard_callback]
-    )
-
-autoencoder.save("models/auto_encoder.model")
+    def load(self):
+        self.autoencoder = keras.models.load_model("models/auto_encoder.model")
+        self.encoder = keras.models.load_model("models/encoder.model")
+        self.decoder = keras.models.load_model("models/decoder.model")
