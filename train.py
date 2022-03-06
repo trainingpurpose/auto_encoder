@@ -1,7 +1,5 @@
 import tensorflow as tf
 from tensorflow import keras
-from datetime import datetime
-
 
 class Models:
 
@@ -17,11 +15,12 @@ class Models:
         self.encoder_input = keras.Input(shape=(28, 28, 1), name='input_image')
         x = keras.layers.Flatten()(self.encoder_input)
         self.encoder_output = keras.layers.Dense(64, activation="relu")(x)
+
         self.decoder_input = keras.layers.Dense(64, activation="relu")(self.encoder_output)
         x = keras.layers.Dense(784, activation="relu")(self.decoder_input)
         self.decoder_output = keras.layers.Reshape((28, 28, 1))(x)
-        self.autoencoder = keras.Model(self.encoder_input, self.decoder_output, name='autoencoder')
 
+        self.autoencoder = keras.Model(self.encoder_input, self.decoder_output, name='autoencoder')
         self.encoder = keras.Model(self.encoder_input, self.encoder_output, name='image_encoder')
         self.decoder = keras.Model(self.decoder_input, self.decoder_output, name='image_decoder')
 
@@ -30,7 +29,6 @@ class Models:
         # log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
         # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
         self.autoencoder.compile(opt, loss='mse')
-        print(self.x_train[0])
         self.autoencoder.fit(
             self.x_train,
             self.x_train,
@@ -46,6 +44,6 @@ class Models:
         self.decoder.save("models/decoder.model")
 
     def load(self):
-        self.autoencoder = keras.models.load_model("models/auto_encoder.model")
-        self.encoder = keras.models.load_model("models/encoder.model")
-        self.decoder = keras.models.load_model("models/decoder.model")
+        self.autoencoder = keras.models.load_model("models/auto_encoder.model", compile=False)
+        self.encoder = keras.models.load_model("models/encoder.model", compile=False)
+        self.decoder = keras.models.load_model("models/decoder.model", compile=False)
