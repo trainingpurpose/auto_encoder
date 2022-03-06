@@ -3,11 +3,7 @@ from matplotlib import pyplot as plt
 from train import Models
 
 data = tf.keras.datasets.mnist.load_data()
-a = Models(data=data)
-
-a.load()
-# a.train()
-# a.save()
+a = Models.load_or_train(data=data)
 
 autoencoder_prediction = a.encoder.predict([a.x_test[0].reshape(-1, 28, 28, 1)])
 

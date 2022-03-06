@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
+
 class Models:
 
     def __init__(self, data, epochs=5):
@@ -12,13 +13,13 @@ class Models:
 
         self.epochs = epochs
 
-        self.encoder_input = keras.Input(shape=(28, 28, 1), name='input_image')
+        self.encoder_input = keras.Input(shape=(28, 28), name='input_image')
         x = keras.layers.Flatten()(self.encoder_input)
         self.encoder_output = keras.layers.Dense(64, activation="relu")(x)
 
         self.decoder_input = keras.layers.Dense(64, activation="relu")(self.encoder_output)
         x = keras.layers.Dense(784, activation="relu")(self.decoder_input)
-        self.decoder_output = keras.layers.Reshape((28, 28, 1))(x)
+        self.decoder_output = keras.layers.Reshape((28, 28))(x)
 
         self.autoencoder = keras.Model(self.encoder_input, self.decoder_output, name='autoencoder')
         self.encoder = keras.Model(self.encoder_input, self.encoder_output, name='image_encoder')
@@ -37,6 +38,7 @@ class Models:
             validation_split=0.10,
             # callbacks=[tensorboard_callback]
         )
+        return self
 
     def save(self):
         self.autoencoder.save("models/auto_encoder.model")
@@ -47,3 +49,14 @@ class Models:
         self.autoencoder = keras.models.load_model("models/auto_encoder.model", compile=False)
         self.encoder = keras.models.load_model("models/encoder.model", compile=False)
         self.decoder = keras.models.load_model("models/decoder.model", compile=False)
+
+    @staticmethod
+    def load_or_train(data):
+        model = Models(data)
+        try:
+            model.load()
+            return model
+        except:
+            model.train()
+            model.save()
+            return model
