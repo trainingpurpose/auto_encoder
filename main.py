@@ -5,11 +5,13 @@ from train import Models
 data = tf.keras.datasets.mnist.load_data()
 a = Models.load_or_train(data=data)
 
-autoencoder_prediction = a.encoder.predict([a.x_test[0].reshape(-1, 28, 28, 1)])
+sample = a.x_test[0]
+reshaped_sample = a.x_test[0].reshape(-1, 28, 28)
 
-ae_out = a.autoencoder.predict([a.x_test[1].reshape(-1, 28, 28, 1)])
-e_out = a.encoder.predict([a.x_test[1].reshape(-1, 28, 28, 1)])
-d_out = a.decoder.predict([e_out])
+autoencoder_prediction = a.encoder.predict(reshaped_sample)
+ae_out = a.autoencoder.predict(reshaped_sample)
+e_out = a.encoder.predict(reshaped_sample)
+d_out = a.decoder.predict(e_out)
 
 plt.ioff()
 fig = plt.figure(figsize=(10, 7))
